@@ -551,6 +551,11 @@ body {
         padding: 14px 24px;
         font-size: 14px;
     }
+
+    .resource-item.resource-link {
+       text-decoration: none;
+       cursor: pointer;
+   }
     
     .resources-grid {
         grid-template-columns: 1fr;
