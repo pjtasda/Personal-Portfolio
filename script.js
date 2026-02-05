@@ -1,37 +1,63 @@
 /**
  * Terminal Portfolio - Interactive Scripts
- * Pure JavaScript - No external dependencies
+ * Multi-page version
  */
 
 // ========================================
-// TERMINAL TYPING EFFECT
+// NAVIGATION
 // ========================================
 
-class TerminalTypewriter {
-    constructor(element, text, speed = 50) {
-        this.element = element;
-        this.text = text;
-        this.speed = speed;
-        this.index = 0;
-        this.isTyping = false;
+class Navigation {
+    constructor() {
+        this.navbar = document.querySelector('.navbar');
+        this.navToggle = document.querySelector('.nav-toggle');
+        this.navLinks = document.querySelector('.nav-links');
+        this.init();
     }
 
-    type() {
-        if (this.index < this.text.length) {
-            this.element.textContent += this.text.charAt(this.index);
-            this.index++;
-            setTimeout(() => this.type(), this.speed);
+    init() {
+        // Mobile menu toggle
+        if (this.navToggle) {
+            this.navToggle.addEventListener('click', () => {
+                this.navLinks.classList.toggle('active');
+                this.toggleMenuAnimation();
+            });
+        }
+
+        // Close mobile menu on link click
+        const navLinkItems = document.querySelectorAll('.nav-link');
+        navLinkItems.forEach(link => {
+            link.addEventListener('click', () => {
+                this.navLinks.classList.remove('active');
+                this.resetMenuAnimation();
+            });
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!this.navbar.contains(e.target) && this.navLinks.classList.contains('active')) {
+                this.navLinks.classList.remove('active');
+                this.resetMenuAnimation();
+            }
+        });
+    }
+
+    toggleMenuAnimation() {
+        const spans = this.navToggle.querySelectorAll('span');
+        if (this.navLinks.classList.contains('active')) {
+            spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
+            spans[1].style.opacity = '0';
+            spans[2].style.transform = 'rotate(-45deg) translate(5px, -5px)';
         } else {
-            this.isTyping = false;
+            this.resetMenuAnimation();
         }
     }
 
-    start() {
-        if (!this.isTyping) {
-            this.isTyping = true;
-            this.element.textContent = '';
-            this.type();
-        }
+    resetMenuAnimation() {
+        const spans = this.navToggle.querySelectorAll('span');
+        spans[0].style.transform = 'none';
+        spans[1].style.opacity = '1';
+        spans[2].style.transform = 'none';
     }
 }
 
@@ -41,10 +67,10 @@ class TerminalTypewriter {
 
 class ScrollReveal {
     constructor() {
-        this.elements = document.querySelectorAll('.skill-box, .case-section, .resource-item');
+        this.elements = document.querySelectorAll('.skill-box, .case-section, .contact-item, .metric, .stat-card, .interest-item');
         this.observerOptions = {
             root: null,
-            rootMargin: '0px',
+            rootMargin: '0px 0px -50px 0px',
             threshold: 0.1
         };
         this.init();
@@ -55,6 +81,18 @@ class ScrollReveal {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('revealed');
+                    
+                    // Animate proficiency bars if inside this element
+                    const proficiencyBars = entry.target.querySelectorAll('.proficiency-fill');
+                    proficiencyBars.forEach(bar => {
+                        const level = bar.dataset.level;
+                        if (level) {
+                            setTimeout(() => {
+                                bar.style.width = level + '%';
+                            }, 200);
+                        }
+                    });
+                    
                     observer.unobserve(entry.target);
                 }
             });
@@ -68,76 +106,13 @@ class ScrollReveal {
 }
 
 // ========================================
-// COMMAND LINE INTERACTIVITY
-// ========================================
-
-class CommandLine {
-    constructor() {
-        this.commands = {
-            'help': this.showHelp.bind(this),
-            'about': this.showAbout.bind(this),
-            'skills': this.showSkills.bind(this),
-            'projects': this.showProjects.bind(this),
-            'contact': this.showContact.bind(this),
-            'clear': this.clearTerminal.bind(this)
-        };
-        this.init();
-    }
-
-    init() {
-        // Add click handlers to command lines for visual feedback
-        const commandLines = document.querySelectorAll('.command-line');
-        commandLines.forEach(line => {
-            line.addEventListener('click', () => {
-                line.style.opacity = '0.7';
-                setTimeout(() => {
-                    line.style.opacity = '1';
-                }, 150);
-            });
-        });
-    }
-
-    showHelp() {
-        return `
-Available commands:
-  help      - Show this help message
-  about     - Display about information
-  skills    - List technical skills
-  projects  - Show project portfolio
-  contact   - Display contact information
-  clear     - Clear terminal output
-        `;
-    }
-
-    showAbout() {
-        return 'Lee Ser Hong - Final-year Cybersecurity & Digital Forensics student at NYP.';
-    }
-
-    showSkills() {
-        return 'Frontend: HTML5, CSS3, JavaScript (ES6+), Bootstrap 5';
-    }
-
-    showProjects() {
-        return 'IT1515 Table Tennis CCA Website - A responsive recruitment platform.';
-    }
-
-    showContact() {
-        return 'Email: available in resume.pdf | Download from footer section.';
-    }
-
-    clearTerminal() {
-        return '';
-    }
-}
-
-// ========================================
 // CURSOR BLINK SYNC
 // ========================================
 
 function syncCursors() {
     const cursors = document.querySelectorAll('.cursor');
     cursors.forEach((cursor, index) => {
-        cursor.style.animationDelay = `${index * 0.2}s`;
+        cursor.style.animationDelay = `${index * 0.3}s`;
     });
 }
 
@@ -145,27 +120,29 @@ function syncCursors() {
 // DOWNLOAD RESUME FUNCTION
 // ========================================
 
-function downloadResume(event) {
-    event.preventDefault();
-    
-    const btn = event.currentTarget;
-    const originalText = btn.querySelector('.btn-text').textContent;
-    
-    // Visual feedback
-    btn.style.transform = 'scale(0.95)';
-    btn.querySelector('.btn-text').textContent = 'downloading...';
-    
-    setTimeout(() => {
-        btn.style.transform = 'scale(1)';
-        btn.querySelector('.btn-text').textContent = 'download complete!';
+function initDownloadButton() {
+    const downloadBtn = document.querySelector('.download-btn');
+    if (!downloadBtn) return;
+
+    downloadBtn.addEventListener('click', function(e) {
+        const btnText = this.querySelector('.btn-text');
+        const originalText = btnText.textContent;
         
-        // Create a simple PDF notification
-        showNotification('Resume download initiated!', 'success');
+        // Visual feedback
+        this.style.transform = 'scale(0.95)';
+        btnText.textContent = 'downloading...';
         
         setTimeout(() => {
-            btn.querySelector('.btn-text').textContent = originalText;
-        }, 2000);
-    }, 500);
+            this.style.transform = 'scale(1)';
+            btnText.textContent = 'download complete!';
+            
+            showNotification('Resume download started!', 'success');
+            
+            setTimeout(() => {
+                btnText.textContent = originalText;
+            }, 2000);
+        }, 800);
+    });
 }
 
 // ========================================
@@ -173,6 +150,10 @@ function downloadResume(event) {
 // ========================================
 
 function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.terminal-notification');
+    existingNotifications.forEach(n => n.remove());
+
     const notification = document.createElement('div');
     notification.className = `terminal-notification ${type}`;
     notification.innerHTML = `
@@ -180,7 +161,6 @@ function showNotification(message, type = 'info') {
         <span class="notification-message">${message}</span>
     `;
     
-    // Styles for notification
     notification.style.cssText = `
         position: fixed;
         bottom: 20px;
@@ -188,15 +168,16 @@ function showNotification(message, type = 'info') {
         background-color: #0a0a0a;
         border: 1px solid #00FF41;
         padding: 16px 24px;
-        font-family: 'Courier New', monospace;
+        font-family: 'JetBrains Mono', monospace;
         font-size: 14px;
         color: #00FF41;
         z-index: 10000;
         display: flex;
         align-items: center;
         gap: 10px;
-        box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
         animation: slideIn 0.3s ease;
+        border-radius: 4px;
     `;
     
     document.body.appendChild(notification);
@@ -216,7 +197,7 @@ function initSkillEffects() {
     
     skillBoxes.forEach(box => {
         box.addEventListener('mouseenter', () => {
-            const items = box.querySelectorAll('.skill-item');
+            const items = box.querySelectorAll('.skill-name-item');
             items.forEach((item, index) => {
                 setTimeout(() => {
                     item.style.color = '#00FF41';
@@ -225,63 +206,11 @@ function initSkillEffects() {
         });
         
         box.addEventListener('mouseleave', () => {
-            const items = box.querySelectorAll('.skill-item');
+            const items = box.querySelectorAll('.skill-name-item');
             items.forEach(item => {
                 item.style.color = '';
             });
         });
-    });
-}
-
-// ========================================
-// PARALLAX SCROLL EFFECT
-// ========================================
-
-function initParallax() {
-    const hero = document.querySelector('.hero');
-    
-    window.addEventListener('scroll', () => {
-        const scrolled = window.pageYOffset;
-        const rate = scrolled * 0.3;
-        
-        if (hero && scrolled < window.innerHeight) {
-            hero.style.backgroundPositionY = `${rate}px`;
-        }
-    });
-}
-
-// ========================================
-// TERMINAL GLITCH EFFECT
-// ========================================
-
-function initGlitchEffect() {
-    const headline = document.querySelector('.headline');
-    if (!headline) return;
-    
-    const originalText = headline.textContent;
-    const glitchChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-    
-    headline.addEventListener('mouseenter', () => {
-        let iterations = 0;
-        const interval = setInterval(() => {
-            headline.textContent = originalText
-                .split('')
-                .map((char, index) => {
-                    if (index < iterations) {
-                        return originalText[index];
-                    }
-                    if (char === ' ') return ' ';
-                    return glitchChars[Math.floor(Math.random() * glitchChars.length)];
-                })
-                .join('');
-            
-            if (iterations >= originalText.length) {
-                clearInterval(interval);
-                headline.textContent = originalText;
-            }
-            
-            iterations += 1 / 2;
-        }, 30);
     });
 }
 
@@ -309,34 +238,23 @@ function initKeyboardShortcuts() {
 }
 
 // ========================================
-// INITIALIZE ALL FUNCTIONS
+// TYPING EFFECT FOR COMMAND LINES
 // ========================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Sync cursor animations
-    syncCursors();
+function initTypingEffect() {
+    const commandLines = document.querySelectorAll('.command-line');
     
-    // Initialize scroll reveal
-    new ScrollReveal();
-    
-    // Initialize command line interactivity
-    new CommandLine();
-    
-    // Initialize skill hover effects
-    initSkillEffects();
-    
-    // Initialize parallax scroll
-    initParallax();
-    
-    // Initialize glitch effect
-    initGlitchEffect();
-    
-    // Initialize keyboard shortcuts
-    initKeyboardShortcuts();
-    
-    // Add CSS animations dynamically
-    addDynamicStyles();
-});
+    commandLines.forEach((line, index) => {
+        line.style.opacity = '0';
+        line.style.transform = 'translateY(10px)';
+        
+        setTimeout(() => {
+            line.style.transition = 'all 0.4s ease';
+            line.style.opacity = '1';
+            line.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+}
 
 // ========================================
 // DYNAMIC STYLES
@@ -369,7 +287,7 @@ function addDynamicStyles() {
         
         .reveal-hidden {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(30px);
             transition: opacity 0.6s ease, transform 0.6s ease;
         }
         
@@ -377,21 +295,39 @@ function addDynamicStyles() {
             opacity: 1;
             transform: translateY(0);
         }
-        
-        .skill-box.revealed {
-            transition-delay: calc(var(--index, 0) * 0.1s);
-        }
-        
-        .case-section.revealed {
-            transition-delay: 0.1s;
-        }
-        
-        .resource-item.revealed {
-            transition-delay: calc(var(--index, 0) * 0.05s);
-        }
     `;
     document.head.appendChild(style);
 }
+
+// ========================================
+// INITIALIZE ALL FUNCTIONS
+// ========================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Add dynamic styles
+    addDynamicStyles();
+    
+    // Initialize navigation
+    new Navigation();
+    
+    // Sync cursor animations
+    syncCursors();
+    
+    // Initialize scroll reveal
+    new ScrollReveal();
+    
+    // Initialize skill hover effects
+    initSkillEffects();
+    
+    // Initialize keyboard shortcuts
+    initKeyboardShortcuts();
+    
+    // Initialize download button
+    initDownloadButton();
+    
+    // Initialize typing effect
+    initTypingEffect();
+});
 
 // ========================================
 // CONSOLE EASTER EGG
@@ -399,4 +335,11 @@ function addDynamicStyles() {
 
 console.log('%c> SYSTEM_USER: LEE SER HONG', 'color: #00FF41; font-family: monospace; font-size: 16px; font-weight: bold;');
 console.log('%c> Welcome to my terminal portfolio!', 'color: #888; font-family: monospace; font-size: 12px;');
+console.log('%c> Navigate through the pages using the menu above.', 'color: #888; font-family: monospace; font-size: 12px;');
+console.log('%c> Tip: Press Ctrl+D on the Contact page to download my resume!', 'color: #00cc33; font-family: monospace; font-size: 12px;');
+// ========================================
+
+console.log('%c> SYSTEM_USER: LEE SER HONG', 'color: #00FF41; font-family: monospace; font-size: 16px; font-weight: bold;');
+console.log('%c> Welcome to my terminal portfolio!', 'color: #888; font-family: monospace; font-size: 12px;');
+
 console.log('%c> Try hovering over elements for interactive effects.', 'color: #888; font-family: monospace; font-size: 12px;');
